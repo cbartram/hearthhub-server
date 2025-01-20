@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/cbartram/hearthhub/src/model"
+	"github.com/cbartram/hearthhub/src/service"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"io"
-	"kraken-api/src/model"
-	"kraken-api/src/service"
 	"net/http"
 )
 

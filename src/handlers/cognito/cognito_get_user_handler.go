@@ -3,10 +3,9 @@ package cognito
 import (
 	"context"
 	"fmt"
+	"github.com/cbartram/hearthhub/src/service"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
-	"kraken-api/src/service"
-
 	"net/http"
 )
 
