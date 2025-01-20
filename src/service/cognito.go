@@ -81,7 +81,7 @@ func (m *CognitoService) GetUser(ctx context.Context, discordId *string) (*model
 		return nil, errors.New("could not get user with username: " + *discordId)
 	}
 
-	var email, discordID, discordUsername, cognitoID string
+	var email, discordID, discordUsername, cognitoID, avatarID string
 	for _, attr := range user.UserAttributes {
 		switch aws.ToString(attr.Name) {
 		case "email":
@@ -92,6 +92,8 @@ func (m *CognitoService) GetUser(ctx context.Context, discordId *string) (*model
 			discordID = aws.ToString(attr.Value)
 		case "custom:discord_username":
 			discordUsername = aws.ToString(attr.Value)
+		case "custom:avatar_id":
+			avatarID = aws.ToString(attr.Value)
 		}
 	}
 
@@ -101,6 +103,7 @@ func (m *CognitoService) GetUser(ctx context.Context, discordId *string) (*model
 		DiscordID:       discordID,
 		Email:           email,
 		CognitoID:       cognitoID,
+		AvatarId:        avatarID,
 		AccountEnabled:  user.Enabled,
 	}, nil
 }
@@ -289,7 +292,7 @@ func (m *CognitoService) AuthUser(ctx context.Context, refreshToken, userId *str
 		return false, nil
 	}
 
-	var email, discordID, discordUsername, cognitoID string
+	var email, discordID, discordUsername, cognitoID, avatarID string
 	for _, attr := range user.UserAttributes {
 		switch aws.ToString(attr.Name) {
 		case "email":
@@ -300,6 +303,8 @@ func (m *CognitoService) AuthUser(ctx context.Context, refreshToken, userId *str
 			discordID = aws.ToString(attr.Value)
 		case "custom:discord_username":
 			discordUsername = aws.ToString(attr.Value)
+		case "custom:avatar_id":
+			avatarID = aws.ToString(attr.Value)
 		}
 	}
 
@@ -311,6 +316,7 @@ func (m *CognitoService) AuthUser(ctx context.Context, refreshToken, userId *str
 		Email:           email,
 		CognitoID:       cognitoID,
 		AccountEnabled:  user.Enabled,
+		AvatarId:        avatarID,
 		Credentials: model.CognitoCredentials{
 			AccessToken:     *auth.AuthenticationResult.AccessToken,
 			RefreshToken:    *refreshToken,
