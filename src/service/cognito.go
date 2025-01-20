@@ -152,24 +152,8 @@ func (m *CognitoService) CreateCognitoUser(ctx context.Context, createUserPayloa
 			Value: aws.String(createUserPayload.DiscordUsername),
 		},
 		{
-			Name:  aws.String("custom:purchased_plugins"),
-			Value: aws.String("nil"),
-		},
-		{
-			Name:  aws.String("custom:license_key"),
-			Value: aws.String("nil"),
-		},
-		{
-			Name:  aws.String("custom:purchase_timestamp"),
-			Value: aws.String("nil"),
-		},
-		{
-			Name:  aws.String("custom:expiration_timestamp"),
-			Value: aws.String("nil"),
-		},
-		{
-			Name:  aws.String("custom:hardware_id"),
-			Value: aws.String(createUserPayload.HardwareID),
+			Name:  aws.String("custom:avatar_id"),
+			Value: aws.String(createUserPayload.AvatarId),
 		},
 		{
 			Name:  aws.String("custom:temporary_password"),

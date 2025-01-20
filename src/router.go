@@ -11,6 +11,22 @@ import (
 	"os"
 )
 
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
+}
+
 func MakeRouter(ctx context.Context) *ginadapter.GinLambda {
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.TextFormatter{
@@ -33,8 +49,8 @@ func MakeRouter(ctx context.Context) *ginadapter.GinLambda {
 
 	r.Use(LogrusMiddleware(logger))
 
-	apiGroup := r.Group("/api/v1")
-	cognitoGroup := apiGroup.Group("/cognito")
+	apiGroup := r.Group("/api/v1", CORSMiddleware())
+	cognitoGroup := apiGroup.Group("/cognito", CORSMiddleware())
 
 	apiGroup.POST("/discord/oauth", func(c *gin.Context) {
 		handler := handlers.DiscordRequestHandler{}
