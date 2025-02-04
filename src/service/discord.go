@@ -40,26 +40,24 @@ type UserResponse struct {
 func MakeDiscordService() (*DiscordService, error) {
 	clientID := os.Getenv("DISCORD_CLIENT_ID")
 	clientSecret := os.Getenv("DISCORD_CLIENT_SECRET")
-	redirectURI := os.Getenv("DISCORD_REDIRECT_URI")
 
-	if clientID == "" || clientSecret == "" || redirectURI == "" {
-		return nil, fmt.Errorf("missing required environment variables: CLIENT_ID, CLIENT_SECRET or REDIRECT_URI")
+	if clientID == "" || clientSecret == "" {
+		return nil, fmt.Errorf("missing required environment variables: CLIENT_ID, CLIENT_SECRET")
 	}
 
 	return &DiscordService{
 		clientID:     clientID,
 		clientSecret: clientSecret,
-		redirectURI:  redirectURI,
 		httpClient:   &http.Client{},
 	}, nil
 }
 
 // ExchangeCodeForToken exchanges an authorization code for an access token
-func (c *DiscordService) ExchangeCodeForToken(code string) (*model.DiscordTokenResponse, error) {
+func (c *DiscordService) ExchangeCodeForToken(code, origin string) (*model.DiscordTokenResponse, error) {
 	data := url.Values{}
 	data.Set("grant_type", "authorization_code")
 	data.Set("code", code)
-	data.Set("redirect_uri", c.redirectURI)
+	data.Set("redirect_uri", fmt.Sprintf("%s/discord/oauth", origin))
 
 	log.Infof("Making POST request to: %s", discordTokenEndpoint)
 

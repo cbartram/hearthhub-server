@@ -47,8 +47,8 @@ func (h *DiscordRequestHandler) HandleRequest(c *gin.Context, ctx context.Contex
 		return
 	}
 
-	log.Infof("exchanging code: %s for oauth access token", code)
-	token, err := discordClient.ExchangeCodeForToken(code)
+	log.Infof("exchanging code: %s for oauth access token with origin: %s/discord/oauth", code, c.Request.Header.Get("Origin"))
+	token, err := discordClient.ExchangeCodeForToken(code, c.Request.Header.Get("Origin"))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": fmt.Sprintf("Failed to exchange code: %v", err),
