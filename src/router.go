@@ -57,6 +57,11 @@ func MakeRouter(ctx context.Context) *ginadapter.GinLambda {
 		handler.HandleRequest(c, ctx)
 	})
 
+	apiGroup.GET("/mods", func(c *gin.Context) {
+		handler := handlers.ModHandler{}
+		handler.HandleRequest(c)
+	})
+
 	cognitoGroup.POST("/create-user", func(c *gin.Context) {
 		handler := cognito.CognitoCreateUserRequestHandler{}
 		handler.HandleRequest(c, ctx)
