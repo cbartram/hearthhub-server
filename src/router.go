@@ -5,6 +5,7 @@ import (
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/cbartram/hearthhub/src/handlers"
 	"github.com/cbartram/hearthhub/src/handlers/cognito"
+	"github.com/cbartram/hearthhub/src/service"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"log"
@@ -49,6 +50,11 @@ func MakeRouter(ctx context.Context) *ginadapter.GinLambda {
 
 	r.Use(LogrusMiddleware(logger))
 
+	s3, err := service.MakeS3Service("us-east-1")
+	if err != nil {
+		logrus.Errorf("failed to create s3 client: %v", err)
+	}
+
 	apiGroup := r.Group("/api/v1", CORSMiddleware())
 	cognitoGroup := apiGroup.Group("/cognito", CORSMiddleware())
 
@@ -59,7 +65,7 @@ func MakeRouter(ctx context.Context) *ginadapter.GinLambda {
 
 	apiGroup.GET("/mods", func(c *gin.Context) {
 		handler := handlers.ModHandler{}
-		handler.HandleRequest(c)
+		handler.HandleRequest(c, s3)
 	})
 
 	cognitoGroup.POST("/create-user", func(c *gin.Context) {
