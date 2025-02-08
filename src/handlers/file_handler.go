@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"strings"
 )
 
 type FileHandler struct{}
@@ -47,7 +48,25 @@ func (f *FileHandler) HandleRequest(c *gin.Context, s3 *service.S3Service) {
 		return
 	}
 
-	obj, err := s3.ListObjects(context.Background(), prefix)
+	// valid prefixes are stored in file_upload_handler.go and essentially are just:
+	// config, backups, mods to direct the s3 operation at where to list or put user files
+	_, ok := ValidPrefixes[prefix]
+	if !ok {
+		log.Errorf("invalid prefix: %s", prefix)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("invalid prefix: %s", prefix),
+		})
+		return
+	}
+
+	var sanitizedPrefix = prefix
+	if strings.HasSuffix("/", prefix) {
+		sanitizedPrefix = prefix[0 : len(prefix)-1]
+	}
+
+	path := fmt.Sprintf("%s/%s/", sanitizedPrefix, discordId)
+
+	obj, err := s3.ListObjects(context.Background(), path)
 	if err != nil {
 		log.Errorf("failed to list objects: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{

@@ -8,19 +8,23 @@ import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"path/filepath"
+	"strings"
 )
 
-var VALID_EXTENSIONS = map[string]bool{
+var ValidExtensions = map[string]bool{
 	"fwl": true,
 	"db":  true,
 	"zip": true,
 	"cfg": true,
 }
 
-var VALID_PREFIXES = map[string]bool{
-	"backups": true,
-	"configs": true,
-	"mods":    true,
+var ValidPrefixes = map[string]bool{
+	"backups":  true,
+	"configs":  true,
+	"mods":     true,
+	"backups/": true,
+	"configs/": true,
+	"mods/":    true,
 }
 
 type UploadFileHandler struct{}
@@ -75,7 +79,7 @@ func (u *UploadFileHandler) HandleRequest(c *gin.Context, s3Client *service.S3Se
 	}
 
 	ext = ext[1:]
-	_, ok := VALID_EXTENSIONS[ext]
+	_, ok := ValidExtensions[ext]
 	if !ok {
 		log.Errorf("invalid extension: %s", ext)
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -84,13 +88,18 @@ func (u *UploadFileHandler) HandleRequest(c *gin.Context, s3Client *service.S3Se
 		return
 	}
 
-	_, ok = VALID_PREFIXES[prefix]
+	_, ok = ValidPrefixes[prefix]
 	if !ok {
 		log.Errorf("invalid prefix: %s", prefix)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": fmt.Sprintf("invalid prefix: %s", prefix),
 		})
 		return
+	}
+
+	var sanitizedPrefix = prefix
+	if strings.HasSuffix("/", prefix) {
+		sanitizedPrefix = prefix[0 : len(prefix)-1]
 	}
 
 	// Validate user's given refresh token matches their provided discord id
@@ -106,7 +115,7 @@ func (u *UploadFileHandler) HandleRequest(c *gin.Context, s3Client *service.S3Se
 		return
 	}
 
-	path := fmt.Sprintf("%s/%s/%s", prefix, discordId, header.Filename)
+	path := fmt.Sprintf("%s/%s/%s", sanitizedPrefix, discordId, header.Filename)
 
 	_, err = s3Client.UploadObject(context.Background(), path)
 	if err != nil {
