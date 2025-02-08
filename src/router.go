@@ -63,8 +63,8 @@ func MakeRouter(ctx context.Context) *ginadapter.GinLambda {
 		handler.HandleRequest(c, ctx)
 	})
 
-	apiGroup.GET("/mods", func(c *gin.Context) {
-		handler := handlers.ModHandler{}
+	apiGroup.GET("/file", func(c *gin.Context) {
+		handler := handlers.FileHandler{}
 		handler.HandleRequest(c, s3)
 	})
 
