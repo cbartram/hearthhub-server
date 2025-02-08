@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	log "github.com/sirupsen/logrus"
 	"os"
 )
 
@@ -35,15 +36,25 @@ func (s *S3Service) ListObjects(ctx context.Context, prefix string) ([]string, e
 		Prefix: aws.String(prefix),
 	}
 
-	var objects []string
-	paginator := s3.NewListObjectsV2Paginator(s.client, input)
-	for paginator.HasMorePages() {
-		page, err := paginator.NextPage(ctx)
+	var objects = []string{}
+	p := s3.NewListObjectsV2Paginator(s.client, input, func(o *s3.ListObjectsV2PaginatorOptions) {
+		if v := int32(100); v != 0 {
+			o.Limit = v
+		}
+	})
+
+	// Iterate through the S3 object pages, printing each object returned.
+	var i int
+	for p.HasMorePages() {
+		i++
+
+		page, err := p.NextPage(context.TODO())
 		if err != nil {
-			return nil, fmt.Errorf("failed to list objects: %v", err)
+			log.Fatalf("failed to get page %v, %v", i, err)
 		}
 
 		for _, obj := range page.Contents {
+			fmt.Println("found object:", *obj.Key)
 			objects = append(objects, *obj.Key)
 		}
 	}

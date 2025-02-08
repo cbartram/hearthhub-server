@@ -14,7 +14,7 @@ type FileHandler struct{}
 
 // HandleRequest Handles the request for listing files under a given prefix. Since this route is deployed
 // to a lambda function and backed by the Cognito Authorizer only authorized users can invoke this.
-func (f *FileHandler) HandleRequest(c *gin.Context, s3 *service.S3Service) {
+func (f *FileHandler) HandleRequest(c *gin.Context, s3Client *service.S3Service) {
 	discordId := c.Query("discordId")
 	refreshToken := c.Query("refreshToken")
 	prefix := c.Query("prefix")
@@ -65,8 +65,9 @@ func (f *FileHandler) HandleRequest(c *gin.Context, s3 *service.S3Service) {
 	}
 
 	path := fmt.Sprintf("%s/%s/", sanitizedPrefix, discordId)
+	log.Infof("prefix is sanitized and valid: %s, listing objects for path: %s", sanitizedPrefix, path)
 
-	obj, err := s3.ListObjects(context.Background(), path)
+	obj, err := s3Client.ListObjects(context.Background(), path)
 	if err != nil {
 		log.Errorf("failed to list objects: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
