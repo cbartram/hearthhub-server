@@ -54,8 +54,10 @@ func (s *S3Service) ListObjects(ctx context.Context, prefix string) ([]string, e
 		}
 
 		for _, obj := range page.Contents {
-			fmt.Println("found object:", *obj.Key)
-			objects = append(objects, *obj.Key)
+			// Ensures we don't get the root object which is the same as the given prefix.
+			if *obj.Key != prefix {
+				objects = append(objects, *obj.Key)
+			}
 		}
 	}
 

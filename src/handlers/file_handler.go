@@ -67,7 +67,7 @@ func (f *FileHandler) HandleRequest(c *gin.Context, s3Client *service.S3Service)
 	path := fmt.Sprintf("%s/%s/", sanitizedPrefix, discordId)
 	log.Infof("prefix is sanitized and valid: %s, listing objects for path: %s", sanitizedPrefix, path)
 
-	obj, err := s3Client.ListObjects(context.Background(), path)
+	objs, err := s3Client.ListObjects(context.Background(), path)
 	if err != nil {
 		log.Errorf("failed to list objects: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -77,6 +77,6 @@ func (f *FileHandler) HandleRequest(c *gin.Context, s3Client *service.S3Service)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"files": obj,
+		"files": objs,
 	})
 }
