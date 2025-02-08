@@ -3,10 +3,14 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/cbartram/hearthhub/src/model"
 	"github.com/cbartram/hearthhub/src/service"
+	"github.com/cbartram/hearthhub/src/util"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"slices"
 	"strings"
 )
 
@@ -67,7 +71,7 @@ func (f *FileHandler) HandleRequest(c *gin.Context, s3Client *service.S3Service)
 	path := fmt.Sprintf("%s/%s/", sanitizedPrefix, discordId)
 	log.Infof("prefix is sanitized and valid: %s, listing objects for path: %s", sanitizedPrefix, path)
 
-	objs, err := s3Client.ListObjects(context.Background(), path)
+	objs, err := s3Client.ListObjects(path)
 	if err != nil {
 		log.Errorf("failed to list objects: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -76,7 +80,30 @@ func (f *FileHandler) HandleRequest(c *gin.Context, s3Client *service.S3Service)
 		return
 	}
 
+	// Also perform a list objects on the default mods available  and concat the lists
+	if prefix == "mods" {
+		log.Infof("prefix is: mods, fetching default mods as well as custom mods for user: %s", discordId)
+		defaultObjs, err := s3Client.ListObjects("mods/general/")
+		if err != nil {
+			log.Errorf("failed to list default mods: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": fmt.Sprintf("failed to list default mods: %v", err),
+			})
+			return
+		}
+		objs = slices.Concat(objs, defaultObjs)
+	}
+
+	// Map the s3 objects into a simpler form with just the key and size (additional attr can be added later)
+	// if needed
+	simpleObjs := util.Map[types.Object, model.SimpleS3Object](objs, func(o types.Object) model.SimpleS3Object {
+		return model.SimpleS3Object{
+			Key:  *o.Key,
+			Size: *o.Size,
+		}
+	})
+
 	c.JSON(http.StatusOK, gin.H{
-		"files": objs,
+		"files": simpleObjs,
 	})
 }

@@ -53,6 +53,7 @@ func (h *CognitoCreateUserRequestHandler) HandleRequest(c *gin.Context, ctx cont
 			DiscordID:       reqBody.DiscordID,
 			AvatarId:        reqBody.AvatarId,
 			AccountEnabled:  true,
+			InstalledMods:   []model.InstalledMod{}, // A user has no mods installed when first created so this is safe
 			Credentials: model.CognitoCredentials{
 				RefreshToken:    *creds.RefreshToken,
 				AccessToken:     *creds.AccessToken,
@@ -79,6 +80,7 @@ func (h *CognitoCreateUserRequestHandler) HandleRequest(c *gin.Context, ctx cont
 			DiscordID:       reqBody.DiscordID,
 			AvatarId:        reqBody.AvatarId,
 			AccountEnabled:  true,
+			InstalledMods:   user.InstalledMods,
 			Credentials:     *creds,
 		})
 	}

@@ -35,24 +35,14 @@ type CognitoAuthRequest struct {
 	DiscordID    string `json:"discordId"`
 }
 
-type LicenseKeyRequestBatch struct {
-	Credentials CognitoCredentials `json:"credentials"`
-	Plugins     map[string]string  `json:"plugins"`
-	HardwareID  string             `json:"hardwareId"`
+type InstalledMod struct {
+	Name      string `json:"name"`
+	Installed bool   `json:"installed"`
 }
 
-type LicenseKeyRequest struct {
-	Credentials CognitoCredentials `json:"credentials"`
-	LicenseKey  string             `json:"licenseKey"`
-	PluginName  string             `json:"pluginName"`
-	HardwareID  string             `json:"hardwareId"`
-}
-
-type PurchasePluginRequest struct {
-	PluginName           string             `json:"pluginName"`
-	PurchaseDurationDays int                `json:"purchaseDurationDays,omitempty"`
-	Credentials          CognitoCredentials `json:"credentials"`
-	// TODO CC information likely
+type SimpleS3Object struct {
+	Key  string `json:"key"`
+	Size int64  `json:"fileSize"`
 }
 
 type CognitoCredentials struct {
@@ -68,6 +58,7 @@ type CognitoUser struct {
 	Email           string             `json:"email,omitempty"`
 	AvatarId        string             `json:"avatarId"`
 	DiscordID       string             `json:"discordId,omitempty"`
+	InstalledMods   []InstalledMod     `json:"installedMods,omitempty"`
 	AccountEnabled  bool               `json:"accountEnabled,omitempty"`
 	Credentials     CognitoCredentials `json:"credentials,omitempty"`
 }

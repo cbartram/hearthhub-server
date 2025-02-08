@@ -30,13 +30,13 @@ func MakeS3Service(region string) (*S3Service, error) {
 }
 
 // ListObjects lists all objects in a bucket with given prefix
-func (s *S3Service) ListObjects(ctx context.Context, prefix string) ([]string, error) {
+func (s *S3Service) ListObjects(prefix string) ([]types.Object, error) {
 	input := &s3.ListObjectsV2Input{
 		Bucket: aws.String(s.bucket),
 		Prefix: aws.String(prefix),
 	}
 
-	var objects = []string{}
+	var objects = []types.Object{}
 	p := s3.NewListObjectsV2Paginator(s.client, input, func(o *s3.ListObjectsV2PaginatorOptions) {
 		if v := int32(100); v != 0 {
 			o.Limit = v
@@ -56,7 +56,7 @@ func (s *S3Service) ListObjects(ctx context.Context, prefix string) ([]string, e
 		for _, obj := range page.Contents {
 			// Ensures we don't get the root object which is the same as the given prefix.
 			if *obj.Key != prefix {
-				objects = append(objects, *obj.Key)
+				objects = append(objects, obj)
 			}
 		}
 	}
@@ -97,14 +97,15 @@ func (s *S3Service) DeleteObject(ctx context.Context, key string) error {
 // DeleteObjectsWithPrefix deletes all objects with the given prefix
 func (s *S3Service) DeleteObjectsWithPrefix(ctx context.Context, prefix string) error {
 	// First list all objects with the prefix
-	objects, err := s.ListObjects(ctx, prefix)
+	objects, err := s.ListObjects(prefix)
 	if err != nil {
 		return fmt.Errorf("failed to list objects for deletion: %v", err)
 	}
 
 	// Create delete objects input
 	var objectIds []types.ObjectIdentifier
-	for _, key := range objects {
+	for _, obj := range objects {
+		key := *obj.Key
 		objectIds = append(objectIds, types.ObjectIdentifier{
 			Key: aws.String(key),
 		})

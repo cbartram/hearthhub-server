@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -81,7 +82,7 @@ func (m *CognitoService) GetUser(ctx context.Context, discordId *string) (*model
 		return nil, errors.New("could not get user with username: " + *discordId)
 	}
 
-	var email, discordID, discordUsername, cognitoID, avatarID string
+	var email, discordID, discordUsername, cognitoID, avatarID, installedModsStr string
 	for _, attr := range user.UserAttributes {
 		switch aws.ToString(attr.Name) {
 		case "email":
@@ -94,7 +95,18 @@ func (m *CognitoService) GetUser(ctx context.Context, discordId *string) (*model
 			discordUsername = aws.ToString(attr.Value)
 		case "custom:avatar_id":
 			avatarID = aws.ToString(attr.Value)
+
+		// installed mods will be a json string stored when the mod is actually persisted to the pvc
+		// by the hearthhub-file manager.
+		case "custom:installed_mods":
+			installedModsStr = aws.ToString(attr.Value)
 		}
+	}
+
+	var installedMods []model.InstalledMod
+	err = json.Unmarshal([]byte(installedModsStr), &installedMods)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("failed to unmarshall installed mods from str: %s", installedModsStr))
 	}
 
 	// Note: This method does not return credentials with the user
@@ -105,6 +117,7 @@ func (m *CognitoService) GetUser(ctx context.Context, discordId *string) (*model
 		CognitoID:       cognitoID,
 		AvatarId:        avatarID,
 		AccountEnabled:  user.Enabled,
+		InstalledMods:   installedMods,
 	}, nil
 }
 
@@ -169,6 +182,10 @@ func (m *CognitoService) CreateCognitoUser(ctx context.Context, createUserPayloa
 		{
 			Name:  aws.String("custom:server_details"),
 			Value: aws.String("nil"),
+		},
+		{
+			Name:  aws.String("custom:installed_mods"),
+			Value: aws.String("[]"),
 		},
 	}
 
@@ -296,7 +313,7 @@ func (m *CognitoService) AuthUser(ctx context.Context, refreshToken, userId *str
 		return false, nil
 	}
 
-	var email, discordID, discordUsername, cognitoID, avatarID string
+	var email, discordID, discordUsername, cognitoID, avatarID, installedModsStr string
 	for _, attr := range user.UserAttributes {
 		switch aws.ToString(attr.Name) {
 		case "email":
@@ -309,7 +326,16 @@ func (m *CognitoService) AuthUser(ctx context.Context, refreshToken, userId *str
 			discordUsername = aws.ToString(attr.Value)
 		case "custom:avatar_id":
 			avatarID = aws.ToString(attr.Value)
+		case "custom:installed_mods":
+			installedModsStr = aws.ToString(attr.Value)
 		}
+	}
+
+	var installedMods []model.InstalledMod
+	err = json.Unmarshal([]byte(installedModsStr), &installedMods)
+	if err != nil {
+		log.Errorf("failed to unmarshall installed mods from str: %s", installedModsStr)
+		return false, nil
 	}
 
 	// Note: we still authenticate a disabled user the service side handles updating UI/auth flows
@@ -321,6 +347,7 @@ func (m *CognitoService) AuthUser(ctx context.Context, refreshToken, userId *str
 		CognitoID:       cognitoID,
 		AccountEnabled:  user.Enabled,
 		AvatarId:        avatarID,
+		InstalledMods:   installedMods,
 		Credentials: model.CognitoCredentials{
 			AccessToken:     *auth.AuthenticationResult.AccessToken,
 			RefreshToken:    *refreshToken,
