@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
-	"io"
 	"os"
 )
 
@@ -52,25 +51,19 @@ func (s *S3Service) ListObjects(ctx context.Context, prefix string) ([]string, e
 	return objects, nil
 }
 
-// DownloadObject downloads an object from S3 and writes it to the provided writer
-func (s *S3Service) DownloadObject(ctx context.Context, key string, writer io.Writer) error {
-	input := &s3.GetObjectInput{
+// UploadObject publishes an object to S3 under the given prefix
+func (s *S3Service) UploadObject(ctx context.Context, key string) (*s3.PutObjectOutput, error) {
+	input := &s3.PutObjectInput{
 		Bucket: aws.String(s.bucket),
 		Key:    aws.String(key),
 	}
 
-	result, err := s.client.GetObject(ctx, input)
+	result, err := s.client.PutObject(ctx, input)
 	if err != nil {
-		return fmt.Errorf("failed to download object: %v", err)
-	}
-	defer result.Body.Close()
-
-	_, err = io.Copy(writer, result.Body)
-	if err != nil {
-		return fmt.Errorf("failed to copy object data: %v", err)
+		return nil, fmt.Errorf("failed to put object: %v", err)
 	}
 
-	return nil
+	return result, nil
 }
 
 // DeleteObject deletes an object from S3
