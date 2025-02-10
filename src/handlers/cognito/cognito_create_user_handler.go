@@ -48,12 +48,13 @@ func (h *CognitoCreateUserRequestHandler) HandleRequest(c *gin.Context, ctx cont
 
 		// Note: this does not provide the cognito id. However, users are located via username (discord id) not cognito id.
 		c.JSON(http.StatusOK, model.CognitoUser{
-			DiscordUsername: reqBody.DiscordUsername,
-			Email:           reqBody.DiscordEmail,
-			DiscordID:       reqBody.DiscordID,
-			AvatarId:        reqBody.AvatarId,
-			AccountEnabled:  true,
-			InstalledMods:   []model.InstalledMod{}, // A user has no mods installed when first created so this is safe
+			DiscordUsername:  reqBody.DiscordUsername,
+			Email:            reqBody.DiscordEmail,
+			DiscordID:        reqBody.DiscordID,
+			AvatarId:         reqBody.AvatarId,
+			AccountEnabled:   true,
+			InstalledMods:    []model.InstalledFile{}, // A user has no mods installed when first created so this is safe
+			InstalledBackups: []model.InstalledFile{},
 			Credentials: model.CognitoCredentials{
 				RefreshToken:    *creds.RefreshToken,
 				AccessToken:     *creds.AccessToken,

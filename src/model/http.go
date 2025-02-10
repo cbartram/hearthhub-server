@@ -35,7 +35,7 @@ type CognitoAuthRequest struct {
 	DiscordID    string `json:"discordId"`
 }
 
-type InstalledMod struct {
+type InstalledFile struct {
 	Name      string `json:"name"`
 	Installed bool   `json:"installed"`
 }
@@ -53,12 +53,13 @@ type CognitoCredentials struct {
 }
 
 type CognitoUser struct {
-	CognitoID       string             `json:"cognitoId,omitempty"`
-	DiscordUsername string             `json:"discordUsername,omitempty"`
-	Email           string             `json:"email,omitempty"`
-	AvatarId        string             `json:"avatarId"`
-	DiscordID       string             `json:"discordId,omitempty"`
-	InstalledMods   []InstalledMod     `json:"installedMods,omitempty"`
-	AccountEnabled  bool               `json:"accountEnabled,omitempty"`
-	Credentials     CognitoCredentials `json:"credentials,omitempty"`
+	CognitoID        string             `json:"cognitoId,omitempty"`
+	DiscordUsername  string             `json:"discordUsername,omitempty"`
+	Email            string             `json:"email,omitempty"`
+	AvatarId         string             `json:"avatarId"`
+	DiscordID        string             `json:"discordId,omitempty"`
+	InstalledMods    []InstalledFile    `json:"installedMods"`
+	InstalledBackups []InstalledFile    `json:"installedBackups"`
+	AccountEnabled   bool               `json:"accountEnabled,omitempty"`
+	Credentials      CognitoCredentials `json:"credentials,omitempty"`
 }

@@ -94,6 +94,19 @@ func (f *FileHandler) HandleRequest(c *gin.Context, s3Client *service.S3Service)
 		objs = slices.Concat(objs, defaultObjs)
 	}
 
+	if prefix == "backups" {
+		log.Infof("prefix is: backups fetching auto backups as well as uploaded backups")
+		autoBackups, err := s3Client.ListObjects(fmt.Sprintf("valheim-backups-auto/%s/", discordId))
+		if err != nil {
+			log.Errorf("failed to list auto backups: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": fmt.Sprintf("failed to list auto backups: %v", err),
+			})
+			return
+		}
+		objs = slices.Concat(objs, autoBackups)
+	}
+
 	// Map the s3 objects into a simpler form with just the key and size (additional attr can be added later)
 	// if needed
 	simpleObjs := util.Map[types.Object, model.SimpleS3Object](objs, func(o types.Object) model.SimpleS3Object {

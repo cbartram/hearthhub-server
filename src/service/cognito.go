@@ -82,7 +82,7 @@ func (m *CognitoService) GetUser(ctx context.Context, discordId *string) (*model
 		return nil, errors.New("could not get user with username: " + *discordId)
 	}
 
-	var email, discordID, discordUsername, cognitoID, avatarID, installedModsStr string
+	var email, discordID, discordUsername, cognitoID, avatarID, installedModsStr, installedBackupsStr string
 	for _, attr := range user.UserAttributes {
 		switch aws.ToString(attr.Name) {
 		case "email":
@@ -100,24 +100,29 @@ func (m *CognitoService) GetUser(ctx context.Context, discordId *string) (*model
 		// by the hearthhub-file manager.
 		case "custom:installed_mods":
 			installedModsStr = aws.ToString(attr.Value)
+		case "custom:installed_backups":
+			installedBackupsStr = aws.ToString(attr.Value)
 		}
 	}
 
-	var installedMods []model.InstalledMod
+	var installedMods []model.InstalledFile
+	var installedBackups []model.InstalledFile
 	err = json.Unmarshal([]byte(installedModsStr), &installedMods)
+	err = json.Unmarshal([]byte(installedBackupsStr), &installedBackups)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("failed to unmarshall installed mods from str: %s", installedModsStr))
+		return nil, errors.New(fmt.Sprintf("failed to unmarshall installed file from str: %s", installedModsStr))
 	}
 
 	// Note: This method does not return credentials with the user
 	return &model.CognitoUser{
-		DiscordUsername: discordUsername,
-		DiscordID:       discordID,
-		Email:           email,
-		CognitoID:       cognitoID,
-		AvatarId:        avatarID,
-		AccountEnabled:  user.Enabled,
-		InstalledMods:   installedMods,
+		DiscordUsername:  discordUsername,
+		DiscordID:        discordID,
+		Email:            email,
+		CognitoID:        cognitoID,
+		AvatarId:         avatarID,
+		AccountEnabled:   user.Enabled,
+		InstalledMods:    installedMods,
+		InstalledBackups: installedBackups,
 	}, nil
 }
 
@@ -185,6 +190,10 @@ func (m *CognitoService) CreateCognitoUser(ctx context.Context, createUserPayloa
 		},
 		{
 			Name:  aws.String("custom:installed_mods"),
+			Value: aws.String("[]"),
+		},
+		{
+			Name:  aws.String("custom:installed_backups"),
 			Value: aws.String("[]"),
 		},
 	}
@@ -313,7 +322,7 @@ func (m *CognitoService) AuthUser(ctx context.Context, refreshToken, userId *str
 		return false, nil
 	}
 
-	var email, discordID, discordUsername, cognitoID, avatarID, installedModsStr string
+	var email, discordID, discordUsername, cognitoID, avatarID, installedModsStr, installedBackupsStr string
 	for _, attr := range user.UserAttributes {
 		switch aws.ToString(attr.Name) {
 		case "email":
@@ -328,26 +337,31 @@ func (m *CognitoService) AuthUser(ctx context.Context, refreshToken, userId *str
 			avatarID = aws.ToString(attr.Value)
 		case "custom:installed_mods":
 			installedModsStr = aws.ToString(attr.Value)
+		case "custom:installed_backups":
+			installedBackupsStr = aws.ToString(attr.Value)
 		}
 	}
 
-	var installedMods []model.InstalledMod
+	var installedMods []model.InstalledFile
+	var installedBackups []model.InstalledFile
 	err = json.Unmarshal([]byte(installedModsStr), &installedMods)
+	err = json.Unmarshal([]byte(installedBackupsStr), &installedBackups)
 	if err != nil {
-		log.Errorf("failed to unmarshall installed mods from str: %s", installedModsStr)
+		log.Errorf("failed to unmarshall installed files from str: %s", installedModsStr)
 		return false, nil
 	}
 
 	// Note: we still authenticate a disabled user the service side handles updating UI/auth flows
 	// to re-auth with discord.
 	return true, &model.CognitoUser{
-		DiscordUsername: discordUsername,
-		DiscordID:       discordID,
-		Email:           email,
-		CognitoID:       cognitoID,
-		AccountEnabled:  user.Enabled,
-		AvatarId:        avatarID,
-		InstalledMods:   installedMods,
+		DiscordUsername:  discordUsername,
+		DiscordID:        discordID,
+		Email:            email,
+		CognitoID:        cognitoID,
+		AccountEnabled:   user.Enabled,
+		AvatarId:         avatarID,
+		InstalledMods:    installedMods,
+		InstalledBackups: installedBackups,
 		Credentials: model.CognitoCredentials{
 			AccessToken:     *auth.AuthenticationResult.AccessToken,
 			RefreshToken:    *refreshToken,
