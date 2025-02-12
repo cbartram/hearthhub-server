@@ -106,7 +106,7 @@ func (m *CognitoService) GetUser(ctx context.Context, discordId *string) (*model
 	}
 
 	var installedMods []model.InstalledFile
-	var installedBackups []model.InstalledFile
+	var installedBackups map[string]bool
 	err = json.Unmarshal([]byte(installedModsStr), &installedMods)
 	err = json.Unmarshal([]byte(installedBackupsStr), &installedBackups)
 	if err != nil {
@@ -194,7 +194,7 @@ func (m *CognitoService) CreateCognitoUser(ctx context.Context, createUserPayloa
 		},
 		{
 			Name:  aws.String("custom:installed_backups"),
-			Value: aws.String("[]"),
+			Value: aws.String("{}"),
 		},
 	}
 
@@ -343,7 +343,7 @@ func (m *CognitoService) AuthUser(ctx context.Context, refreshToken, userId *str
 	}
 
 	var installedMods []model.InstalledFile
-	var installedBackups []model.InstalledFile
+	var installedBackups map[string]bool
 	err = json.Unmarshal([]byte(installedModsStr), &installedMods)
 	err = json.Unmarshal([]byte(installedBackupsStr), &installedBackups)
 	if err != nil {

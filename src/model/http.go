@@ -59,7 +59,7 @@ type CognitoUser struct {
 	AvatarId         string             `json:"avatarId"`
 	DiscordID        string             `json:"discordId,omitempty"`
 	InstalledMods    []InstalledFile    `json:"installedMods"`
-	InstalledBackups []InstalledFile    `json:"installedBackups"`
+	InstalledBackups map[string]bool    `json:"installedBackups"`
 	AccountEnabled   bool               `json:"accountEnabled,omitempty"`
 	Credentials      CognitoCredentials `json:"credentials,omitempty"`
 }

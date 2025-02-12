@@ -54,7 +54,7 @@ func (h *CognitoCreateUserRequestHandler) HandleRequest(c *gin.Context, ctx cont
 			AvatarId:         reqBody.AvatarId,
 			AccountEnabled:   true,
 			InstalledMods:    []model.InstalledFile{}, // A user has no mods installed when first created so this is safe
-			InstalledBackups: []model.InstalledFile{},
+			InstalledBackups: map[string]bool{},
 			Credentials: model.CognitoCredentials{
 				RefreshToken:    *creds.RefreshToken,
 				AccessToken:     *creds.AccessToken,
