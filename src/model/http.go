@@ -35,11 +35,6 @@ type CognitoAuthRequest struct {
 	DiscordID    string `json:"discordId"`
 }
 
-type InstalledFile struct {
-	Name      string `json:"name"`
-	Installed bool   `json:"installed"`
-}
-
 type SimpleS3Object struct {
 	Key  string `json:"key"`
 	Size int64  `json:"fileSize"`
@@ -58,7 +53,7 @@ type CognitoUser struct {
 	Email            string             `json:"email,omitempty"`
 	AvatarId         string             `json:"avatarId"`
 	DiscordID        string             `json:"discordId,omitempty"`
-	InstalledMods    []InstalledFile    `json:"installedMods"`
+	InstalledMods    map[string]bool    `json:"installedMods"`
 	InstalledBackups map[string]bool    `json:"installedBackups"`
 	AccountEnabled   bool               `json:"accountEnabled,omitempty"`
 	Credentials      CognitoCredentials `json:"credentials,omitempty"`

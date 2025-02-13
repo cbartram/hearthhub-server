@@ -53,7 +53,7 @@ func (h *CognitoCreateUserRequestHandler) HandleRequest(c *gin.Context, ctx cont
 			DiscordID:        reqBody.DiscordID,
 			AvatarId:         reqBody.AvatarId,
 			AccountEnabled:   true,
-			InstalledMods:    []model.InstalledFile{}, // A user has no mods installed when first created so this is safe
+			InstalledMods:    map[string]bool{}, // A user has no mods installed when first created so this is safe
 			InstalledBackups: map[string]bool{},
 			Credentials: model.CognitoCredentials{
 				RefreshToken:    *creds.RefreshToken,
@@ -76,13 +76,14 @@ func (h *CognitoCreateUserRequestHandler) HandleRequest(c *gin.Context, ctx cont
 		}
 
 		c.JSON(http.StatusOK, model.CognitoUser{
-			DiscordUsername: reqBody.DiscordUsername,
-			Email:           reqBody.DiscordEmail,
-			DiscordID:       reqBody.DiscordID,
-			AvatarId:        reqBody.AvatarId,
-			AccountEnabled:  true,
-			InstalledMods:   user.InstalledMods,
-			Credentials:     *creds,
+			DiscordUsername:  reqBody.DiscordUsername,
+			Email:            reqBody.DiscordEmail,
+			DiscordID:        reqBody.DiscordID,
+			AvatarId:         reqBody.AvatarId,
+			AccountEnabled:   true,
+			InstalledMods:    user.InstalledMods,
+			InstalledBackups: user.InstalledBackups,
+			Credentials:      *creds,
 		})
 	}
 }
